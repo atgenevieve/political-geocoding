@@ -29,37 +29,37 @@ when newer maps take effect. The first time, Sheets may ask you to
 **Just the district** (`TX-07`; for a ZIP split between districts, the one with most of its people)
 
 ```
-=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),2,FALSE),"")
+=IFERROR(XLOOKUP(VALUE(LEFT(A2,5)),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),1),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),2)),"")
 ```
 
 **Every district, with the share of the ZIP's people in each** (`TX-07 (82.1%), TX-09 (17.9%)`)
 
 ```
-=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),5,FALSE),"")
+=IFERROR(XLOOKUP(VALUE(LEFT(A2,5)),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),1),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),5)),"")
 ```
 
 **Every district, without percentages** (`TX-07, TX-09`)
 
 ```
-=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),4,FALSE),"")
+=IFERROR(XLOOKUP(VALUE(LEFT(A2,5)),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),1),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),4)),"")
 ```
 
 **The share of the ZIP's people in its main district** (`82.1`)
 
 ```
-=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),3,FALSE),"")
+=IFERROR(XLOOKUP(VALUE(LEFT(A2,5)),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),1),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),3)),"")
 ```
 
 **The state** (`TX`)
 
 ```
-=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),6,FALSE),"")
+=IFERROR(XLOOKUP(VALUE(LEFT(A2,5)),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),1),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),6)),"")
 ```
 
 **Every district with shares, using current members' districts** (the lines in effect until Jan 3, 2027)
 
 ```
-=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/cd119/zip_cd.csv"),5,FALSE),"")
+=IFERROR(XLOOKUP(VALUE(LEFT(A2,5)),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/cd119/zip_cd.csv"),1),CHOOSECOLS(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/cd119/zip_cd.csv"),5)),"")
 ```
 
 ## Files
