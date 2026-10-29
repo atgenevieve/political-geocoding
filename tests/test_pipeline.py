@@ -121,3 +121,10 @@ def test_validate_rejects_wrong_seat_count():
     _, stats = build.zcta_district_overlay(_base(), _assignment())
     with pytest.raises(ValueError, match="AL: 2 districts, expected 7"):
         build.validate_congress(stats)
+
+
+def test_read_block_assignment_picks_named_district_column(tmp_path):
+    path = tmp_path / "plan.txt"
+    path.write_text("BLOCKID,STATEFP,CD120FP\n480010001001000,48,07\n480010001001001,48,09\n")
+    df = sources.read_block_assignment(path)
+    assert list(df["district"]) == ["07", "09"]

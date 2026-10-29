@@ -185,14 +185,24 @@ def read_block_assignment(path: Path, member_pattern: str = "") -> pd.DataFrame:
             text = zf.read(name).decode("latin-1")
     else:
         text = path.read_text(encoding="latin-1")
-    first = text.split("\n", 1)[0]
+    lines = text.split("\n", 2)
+    log(f"  first lines: {lines[0]!r} {lines[1] if len(lines) > 1 else ''!r}")
+    first = lines[0]
     sep = max([",", "|", "\t"], key=first.count)
-    df = pd.read_csv(io.StringIO(text), sep=sep, header=None, dtype=str, usecols=[0, 1],
-                     names=["block", "district"], keep_default_na=False)
-    df["block"] = df["block"].str.strip()
-    df["district"] = df["district"].str.strip()
-    if not _BLOCK_RE.match(df["block"].iloc[0]):  # header row
+    df = pd.read_csv(io.StringIO(text), sep=sep, header=None, dtype=str, keep_default_na=False)
+    df = df.apply(lambda c: c.str.strip())
+    header = None
+    if not _BLOCK_RE.match(df.iloc[0, 0]):
+        header = [h.upper() for h in df.iloc[0]]
         df = df.iloc[1:]
+    # Block id is the first column. The district is the column named like a
+    # district (CDFP, CD120FP, DISTRICT...), else the last column.
+    col = df.shape[1] - 1
+    if header:
+        named = [i for i, h in enumerate(header[1:], 1) if re.search(r"CD|DIST|SLD", h)]
+        if named:
+            col = named[0]
+    df = pd.DataFrame({"block": df.iloc[:, 0], "district": df.iloc[:, col]})
     df = df[df["block"] != ""]
     bad = ~df["block"].str.match(_BLOCK_RE)
     if bad.any():
