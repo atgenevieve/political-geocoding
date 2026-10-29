@@ -18,9 +18,9 @@ keep working when the default moves to a newer map.
 
 ## Google Sheets
 
-Put ZIP codes in column A starting at A2, then paste one of these formulas
-into B2 only. It fills in the whole column by itself, including ZIPs you add
-later, and loads the data once for the whole sheet.
+Put ZIP codes in column A starting at A2, paste one of these formulas into B2,
+and drag it down. Every cell loads the same file, so Sheets fetches it once for
+the whole sheet and thousands of rows fill in quickly.
 
 These use the districts on the ballot Nov 3, 2026, and switch automatically
 when newer maps take effect. The first time, Sheets may ask you to
@@ -29,25 +29,25 @@ when newer maps take effect. The first time, Sheets may ask you to
 **Just the district** (`TX-07`; for a ZIP split between districts, the one with most of its people)
 
 ```
-=ARRAYFORMULA(IF(A2:A="","",IFERROR(VLOOKUP(VALUE(LEFT(A2:A,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),2,FALSE),"")))
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),2,FALSE),"")
 ```
 
 **Every district, with the share of the ZIP's people in each** (`TX-07 (82.1%), TX-09 (17.9%)`)
 
 ```
-=ARRAYFORMULA(IF(A2:A="","",IFERROR(VLOOKUP(VALUE(LEFT(A2:A,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),4,FALSE),"")))
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),4,FALSE),"")
 ```
 
 **Every district, without percentages** (`TX-07, TX-09`)
 
 ```
-=ARRAYFORMULA(IF(A2:A="","",IFERROR(VLOOKUP(VALUE(LEFT(A2:A,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),3,FALSE),"")))
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),3,FALSE),"")
 ```
 
 **Every district with shares, using current members' districts** (the lines in effect until Jan 3, 2027)
 
 ```
-=ARRAYFORMULA(IF(A2:A="","",IFERROR(VLOOKUP(VALUE(LEFT(A2:A,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/cd119/zip_slim.csv"),4,FALSE),"")))
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/cd119/zip_slim.csv"),4,FALSE),"")
 ```
 
 ## Files
