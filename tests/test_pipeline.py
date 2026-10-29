@@ -128,3 +128,16 @@ def test_read_block_assignment_picks_named_district_column(tmp_path):
     path.write_text("BLOCKID,STATEFP,CD120FP\n480010001001000,48,07\n480010001001001,48,09\n")
     df = sources.read_block_assignment(path)
     assert list(df["district"]) == ["07", "09"]
+
+
+def test_summary_skips_unpopulated_slivers(tmp_path):
+    base = pd.concat([_base(), pd.DataFrame({
+        "block": ["010010000001004"], "zcta": ["10001"], "pop": [0.0], "aland": [5.0]})])
+    assignment = pd.concat([_assignment(), pd.DataFrame({
+        "block": ["010010000001004"], "district": ["03"]})])
+    pieces, _ = build.zcta_district_overlay(base, assignment)
+    build.write_congress_outputs("cdtest", pieces, tmp_path)
+    lookup = pd.read_csv(tmp_path / "zip_cd.csv", dtype=str)
+    assert lookup.iloc[0]["all_cds"] == "AL-01, AL-02"
+    detail = pd.read_csv(tmp_path / "zip_cd_detail.csv", dtype=str)
+    assert "AL-03" in set(detail["cd"])

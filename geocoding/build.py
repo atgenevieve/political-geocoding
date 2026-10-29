@@ -113,6 +113,9 @@ def write_congress_outputs(plan_id: str, pieces: pd.DataFrame, out_dir: Path) ->
     })
     detail.to_csv(out_dir / "zip_cd_detail.csv", index=False)
 
+    # The summary files skip pieces with no residents in ZIPs that have
+    # residents (slivers of empty land); zip_cd_detail.csv keeps them.
+    p = p[(p["pop"] >= 0.5) | (p["zcta_pop"] < 0.5)]
     p["share"] = [f"{cd} {fmt_pct(w)}" for cd, w in zip(p["cd"], p["weight"])]
     g = p.groupby("zcta", sort=True)
     lookup = pd.DataFrame({

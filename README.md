@@ -124,6 +124,10 @@ python -m pytest
   organizations or military mail have no ZCTA and are not in the lookup yet.
 - Population shares use 2020 Census counts, the same counts the districts
   were drawn with.
+- Some states (CA, MD, NJ, NY, VA, WA and others) count incarcerated people
+  at their home address when drawing districts, so district totals computed
+  from unadjusted Census counts differ by a few percent. This does not change
+  which district any block is in.
 - Where a plan splits a census block, the Census file assigns the whole block
   to one district, which moves at most a handful of people.
 
