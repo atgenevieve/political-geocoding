@@ -5,8 +5,8 @@ from Census Bureau files so they can be regenerated whenever district lines
 change.
 
 **Available now:** every ZIP code → U.S. congressional district(s), with the
-share of the ZIP's population (and land) in each district, usable straight
-from Google Sheets.
+share of the ZIP's population (and land) in each district, usable from a plain
+Google Sheets formula.
 
 | Plan | What it is | Lookup |
 |---|---|---|
@@ -18,39 +18,47 @@ keep working when the default moves to a newer map.
 
 ## Google Sheets
 
-### Option 1: custom function (recommended)
+Paste a formula into any cell; no add-ons, scripts or extra tabs. `A2` holds
+a ZIP (text or number, ZIP+4 is fine; lost leading zeros are restored).
 
-1. In your sheet, open **Extensions → Apps Script**.
-2. Replace the editor contents with [`sheets/PoliticalGeocoding.gs`](sheets/PoliticalGeocoding.gs) and save.
-3. Use it in any cell (the first run asks you to authorize fetching data from GitHub):
-
-```
-=ZIP2CD(A2)                 TX-07                     district with most of the ZIP's people
-=ZIP2CD(A2, "all")          TX-07, TX-09
-=ZIP2CD(A2, "pct")          TX-07 82.1%, TX-09 17.9%
-=ZIP2CD(A2, "share")        82.1                      % of the ZIP's people in that district
-=ZIP2CD(A2:A5000)           one result per row; far faster than filling a formula down
-=ZIP2CD(A2, "cd", "cd119")  current Congress instead of the 2026 lines
-=ZIP2CD_PCT(A2, "TX-09")    17.9                      % of the ZIP's people in a given district
-=ZIP2CD_TABLE(A2)           spills: district | % of people | % of land
-```
-
-ZIPs can be text or numbers (lost leading zeros are restored) and may be ZIP+4.
-Data is cached for six hours per spreadsheet.
-
-### Option 2: no script
-
-Load the lookup once into a tab (say `cd`) with
-`=IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv")`,
-then look ZIPs up against that tab:
+District with most of the ZIP's people, e.g. `TX-07`:
 
 ```
-=VLOOKUP(VALUE(LEFT(A2,5)), cd!A:G, 2, FALSE)   primary district
-=VLOOKUP(VALUE(LEFT(A2,5)), cd!A:G, 6, FALSE)   all districts with % of people
+=INDEX(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip/"&LEFT(TEXT(A2,"00000"),5)&".csv"),1,1)
 ```
 
-(`IMPORTDATA` turns ZIPs into numbers, which is why the lookup key is
-`VALUE(...)`.)
+Every district with its share of the ZIP's people, e.g. `TX-07 (82.1%), TX-09 (17.9%)`:
+
+```
+=TEXTJOIN(", ",TRUE,INDEX(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip/"&LEFT(TEXT(A2,"00000"),5)&".csv"),0,3))
+```
+
+Other variations on the same file (columns are district, % of people, label):
+
+| Want | Change the ending to |
+|---|---|
+| % of the ZIP's people in the top district (`82.1`) | `...),1,2)` |
+| Every district, no percentages (`TX-07, TX-09`) | `=TEXTJOIN(", ",TRUE,INDEX(IMPORTDATA(...),0,1))` |
+| A small table, one row per district | `=IMPORTDATA(...)` on its own |
+| Current Congress instead of the 2026 lines | `/data/congress/cd119/zip/` in the URL |
+
+Wrap any of them in `IFERROR(..., "")` to leave cells blank for ZIPs that
+aren't in the data. The first time, Sheets may ask you to **Allow access** to
+external data; click it once per spreadsheet.
+
+`data/congress/zip/` always holds the default plan, so these formulas keep
+returning current districts when the default moves to a newer map.
+
+**Thousands of rows?** Each formula above fetches one tiny file. For very long
+lists you can instead look every row up in the full table (1.5 MB); Sheets
+reuses the download for identical URLs:
+
+```
+=VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),2,FALSE)
+```
+
+(Column 2 is the top district, 3 its %, 5 all districts, 6 all districts with
+%. `IMPORTDATA` reads ZIPs as numbers, hence `VALUE(...)`.)
 
 ## Files
 
@@ -62,8 +70,8 @@ Each plan folder `data/congress/<plan>/` holds:
 - `zip_cd_detail.csv`: one row per ZIP × district piece. Columns: `zip`,
   `state`, `cd`, `cd_geoid` (state FIPS + district), `pct_pop`, `pct_land`,
   `pop`, `zip_pop`.
-- `by_prefix/<first 3 digits>.json`: the same pieces as small JSON files,
-  `{"zip": [[cd, pct_pop, pct_land], ...]}`, used by the Sheets function.
+- `zip/<zip>.csv`: one tiny file per ZIP for spreadsheet formulas, a row per
+  district with `cd`, `% of the ZIP's people`, and a `cd (pct%)` label.
 
 `data/manifest.json` records each plan's source URL, its checksum and
 `Last-Modified` date, and the validation results of the last build.

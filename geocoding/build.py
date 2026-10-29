@@ -129,14 +129,14 @@ def write_congress_outputs(plan_id: str, pieces: pd.DataFrame, out_dir: Path) ->
     })
     lookup.to_csv(out_dir / "zip_cd.csv", index=False)
 
-    # One tiny CSV per ZIP (a row per district: label, % of the ZIP), so a
-    # spreadsheet can read a single ZIP with IMPORTDATA and nothing else.
+    # One tiny CSV per ZIP, a row per district: label, % of the ZIP's people,
+    # "label (pct%)". A spreadsheet reads a ZIP with IMPORTDATA alone.
     zip_dir = out_dir / "zip"
     if zip_dir.exists():
         shutil.rmtree(zip_dir)
     zip_dir.mkdir()
     for z, grp in p.groupby("zcta", sort=False):
-        lines = [f"{cd},{w:.1f}" for cd, w in zip(grp["cd"], grp["weight"])]
+        lines = [f"{cd},{w:.1f},{cd} ({w:.1f}%)" for cd, w in zip(grp["cd"], grp["weight"])]
         (zip_dir / f"{z}.csv").write_text("\n".join(lines) + "\n")
 
     return {
