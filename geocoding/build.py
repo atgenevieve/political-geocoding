@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import shutil
 import tomllib
-from xml.sax.saxutils import escape
 from pathlib import Path
 
 import pandas as pd
@@ -130,14 +129,10 @@ def write_congress_outputs(plan_id: str, pieces: pd.DataFrame, out_dir: Path) ->
     })
     lookup.to_csv(out_dir / "zip_cd.csv", index=False)
 
-    # Slim copies for spreadsheets that import the whole table at once:
-    # a 3-column CSV, and XML so IMPORTXML can pick out just the ZIPs needed.
-    lookup[["zip", "cd", "all_cds_pct"]].to_csv(out_dir / "zip_slim.csv", index=False, header=False)
-    xml = ['<?xml version="1.0" encoding="UTF-8"?>', "<zips>"]
-    for z, cd, shares in zip(lookup["zip"], lookup["cd"], lookup["all_cds_pct"]):
-        xml.append(f'<z k="{z}" d="{cd}" s="{escape(shares)}">{z}|{escape(shares)}</z>')
-    xml.append("</zips>")
-    (out_dir / "zip.xml").write_text("\n".join(xml) + "\n")
+    # Headerless copy without the bulky columns, for a spreadsheet formula
+    # that imports the whole table once and looks up an entire column.
+    lookup[["zip", "cd", "all_cds", "all_cds_pct"]].to_csv(
+        out_dir / "zip_slim.csv", index=False, header=False)
 
     # One tiny CSV per ZIP, a row per district: label, % of the ZIP's people,
     # "label (pct%)". A spreadsheet reads a ZIP with IMPORTDATA alone.
@@ -204,7 +199,7 @@ def build(plan_ids: list[str] | None = None, refresh_base: bool = False) -> None
     default = manifest["defaults"].get("congress")
     src = DATA / "congress" / str(default)
     if default and (src / "zip_cd.csv").exists():
-        for name in ("zip_cd.csv", "zip_slim.csv", "zip.xml"):
+        for name in ("zip_cd.csv", "zip_slim.csv"):
             shutil.copyfile(src / name, DATA / "congress" / name)
         if (DATA / "congress" / "zip").exists():
             shutil.rmtree(DATA / "congress" / "zip")
