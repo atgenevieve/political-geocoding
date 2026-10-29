@@ -7,7 +7,7 @@
       "files": {
         "detail": "data/congress/cd119/zip_cd_detail.csv",
         "lookup": "data/congress/cd119/zip_cd.csv",
-        "shards": "data/congress/cd119/by_prefix/{prefix}.json"
+        "per_zip": "data/congress/cd119/zip/{zip}.csv"
       },
       "first_election": "2024-11-05",
       "id": "cd119",
@@ -83,7 +83,7 @@
       "files": {
         "detail": "data/congress/cd120/zip_cd_detail.csv",
         "lookup": "data/congress/cd120/zip_cd.csv",
-        "shards": "data/congress/cd120/by_prefix/{prefix}.json"
+        "per_zip": "data/congress/cd120/zip/{zip}.csv"
       },
       "first_election": "2026-11-03",
       "id": "cd120",

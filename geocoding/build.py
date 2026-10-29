@@ -129,19 +129,15 @@ def write_congress_outputs(plan_id: str, pieces: pd.DataFrame, out_dir: Path) ->
     })
     lookup.to_csv(out_dir / "zip_cd.csv", index=False)
 
-    # Small JSON shards keyed by the first 3 digits, for the Sheets function.
-    shard_dir = out_dir / "by_prefix"
-    if shard_dir.exists():
-        shutil.rmtree(shard_dir)
-    shard_dir.mkdir()
-    rows = zip(p["zcta"], p["cd"], p["pct_pop"], p["pct_land"])
-    shards: dict[str, dict[str, list]] = {}
-    for z, cd, pp, pl in rows:
-        shards.setdefault(z[:3], {}).setdefault(z, []).append(
-            [cd, None if pd.isna(pp) else round(pp, 2), None if pd.isna(pl) else round(pl, 2)]
-        )
-    for prefix, data in shards.items():
-        (shard_dir / f"{prefix}.json").write_text(json.dumps(data, separators=(",", ":")))
+    # One tiny CSV per ZIP, a row per district: label, % of the ZIP's people,
+    # "label (pct%)". A spreadsheet reads a ZIP with IMPORTDATA alone.
+    zip_dir = out_dir / "zip"
+    if zip_dir.exists():
+        shutil.rmtree(zip_dir)
+    zip_dir.mkdir()
+    for z, grp in p.groupby("zcta", sort=False):
+        lines = [f"{cd},{w:.1f},{cd} ({w:.1f}%)" for cd, w in zip(grp["cd"], grp["weight"])]
+        (zip_dir / f"{z}.csv").write_text("\n".join(lines) + "\n")
 
     return {
         "zips": int(lookup.shape[0]),
@@ -173,7 +169,7 @@ def build_plan(plan: dict, base: pd.DataFrame) -> dict:
         "files": {
             "lookup": f"data/{plan['layer']}/{plan['id']}/zip_cd.csv",
             "detail": f"data/{plan['layer']}/{plan['id']}/zip_cd_detail.csv",
-            "shards": f"data/{plan['layer']}/{plan['id']}/by_prefix/{{prefix}}.json",
+            "per_zip": f"data/{plan['layer']}/{plan['id']}/zip/{{zip}}.csv",
         },
         "stats": stats,
     }
@@ -193,10 +189,14 @@ def build(plan_ids: list[str] | None = None, refresh_base: bool = False) -> None
     manifest["population_source"] = "2020 Census PL 94-171 block population"
     manifest["zip_source"] = sources.ZCTA_BLOCK_URL
 
-    # Stable top-level copy of the default congressional lookup, so a
+    # Stable top-level copies of the default congressional lookup, so a
     # spreadsheet formula keeps working when the default map changes.
     default = manifest["defaults"].get("congress")
-    if default and (DATA / "congress" / default / "zip_cd.csv").exists():
-        shutil.copyfile(DATA / "congress" / default / "zip_cd.csv", DATA / "congress" / "zip_cd.csv")
+    src = DATA / "congress" / str(default)
+    if default and (src / "zip_cd.csv").exists():
+        shutil.copyfile(src / "zip_cd.csv", DATA / "congress" / "zip_cd.csv")
+        if (DATA / "congress" / "zip").exists():
+            shutil.rmtree(DATA / "congress" / "zip")
+        shutil.copytree(src / "zip", DATA / "congress" / "zip")
 
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
