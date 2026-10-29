@@ -122,15 +122,14 @@ def write_congress_outputs(plan_id: str, pieces: pd.DataFrame, out_dir: Path) ->
         "zip": g["zcta"].first(),
         "cd": g["cd"].first(),
         "pct": g["weight"].first().round(1),
-        "n_cds": g["cd"].size(),
         "all_cds": g["cd"].agg(", ".join),
         "all_cds_pct": g["share"].agg(", ".join),
         "state": g["usps"].first(),
     })
     lookup.to_csv(out_dir / "zip_cd.csv", index=False)
 
-    # Headerless copy without the bulky columns, for a spreadsheet formula
-    # that imports the whole table once and looks up an entire column.
+    # Headerless copy without pct or state, kept so spreadsheet formulas
+    # written against it keep working.
     lookup[["zip", "cd", "all_cds", "all_cds_pct"]].to_csv(
         out_dir / "zip_slim.csv", index=False, header=False)
 
@@ -146,7 +145,7 @@ def write_congress_outputs(plan_id: str, pieces: pd.DataFrame, out_dir: Path) ->
 
     return {
         "zips": int(lookup.shape[0]),
-        "zips_split": int((lookup["n_cds"] > 1).sum()),
+        "zips_split": int((g["cd"].size() > 1).sum()),
     }
 
 
