@@ -72,8 +72,6 @@ Each plan folder `data/congress/<plan>/` holds:
 - `zip_cd_detail.csv`: one row per ZIP × district piece. Columns: `zip`,
   `state`, `cd`, `cd_geoid` (state FIPS + district), `pct_pop`, `pct_land`,
   `pop`, `zip_pop`.
-- `zip_slim.csv`: `zip_cd.csv` without the header, `pct` or `state`, kept
-  for formulas written against it.
 - `zip/<zip>.csv`: one tiny file per ZIP for spreadsheet formulas, a row per
   district with `cd`, `% of the ZIP's people`, and a `cd (pct%)` label.
 
