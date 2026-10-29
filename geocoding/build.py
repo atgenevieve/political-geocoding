@@ -129,6 +129,11 @@ def write_congress_outputs(plan_id: str, pieces: pd.DataFrame, out_dir: Path) ->
     })
     lookup.to_csv(out_dir / "zip_cd.csv", index=False)
 
+    # Headerless copy without the bulky columns, for a spreadsheet formula
+    # that imports the whole table once and looks up an entire column.
+    lookup[["zip", "cd", "all_cds", "all_cds_pct"]].to_csv(
+        out_dir / "zip_slim.csv", index=False, header=False)
+
     # One tiny CSV per ZIP, a row per district: label, % of the ZIP's people,
     # "label (pct%)". A spreadsheet reads a ZIP with IMPORTDATA alone.
     zip_dir = out_dir / "zip"
@@ -194,7 +199,8 @@ def build(plan_ids: list[str] | None = None, refresh_base: bool = False) -> None
     default = manifest["defaults"].get("congress")
     src = DATA / "congress" / str(default)
     if default and (src / "zip_cd.csv").exists():
-        shutil.copyfile(src / "zip_cd.csv", DATA / "congress" / "zip_cd.csv")
+        for name in ("zip_cd.csv", "zip_slim.csv"):
+            shutil.copyfile(src / name, DATA / "congress" / name)
         if (DATA / "congress" / "zip").exists():
             shutil.rmtree(DATA / "congress" / "zip")
         shutil.copytree(src / "zip", DATA / "congress" / "zip")

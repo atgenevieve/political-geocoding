@@ -18,43 +18,36 @@ keep working when the default moves to a newer map.
 
 ## Google Sheets
 
-Put ZIP codes in column A starting at A2, paste one of these formulas into
-B2, and fill it down.
+Put ZIP codes in column A starting at A2, paste one of these formulas into B2,
+and drag it down. Every cell loads the same file, so Sheets fetches it once for
+the whole sheet and thousands of rows fill in quickly.
 
 These use the districts on the ballot Nov 3, 2026, and switch automatically
 when newer maps take effect. The first time, Sheets may ask you to
 **Allow access**; click it.
 
-**Just the district** (e.g. `TX-07`; for a ZIP split between districts, the one
-with most of its people)
+**Just the district** (`TX-07`; for a ZIP split between districts, the one with most of its people)
 
 ```
-=IFERROR(INDEX(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip/"&LEFT(TEXT(A2,"00000"),5)&".csv"),1,1),"")
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),2,FALSE),"")
 ```
 
-**Every district, with the share of the ZIP's people in each** (e.g. `TX-07 (82.1%), TX-09 (17.9%)`)
+**Every district, with the share of the ZIP's people in each** (`TX-07 (82.1%), TX-09 (17.9%)`)
 
 ```
-=IFERROR(TEXTJOIN(", ",TRUE,INDEX(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip/"&LEFT(TEXT(A2,"00000"),5)&".csv"),0,3)),"")
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),4,FALSE),"")
 ```
 
-**Every district, without percentages** (e.g. `TX-07, TX-09`)
+**Every district, without percentages** (`TX-07, TX-09`)
 
 ```
-=IFERROR(TEXTJOIN(", ",TRUE,INDEX(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip/"&LEFT(TEXT(A2,"00000"),5)&".csv"),0,1)),"")
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),3,FALSE),"")
 ```
 
-**The share of the ZIP's people in its main district** (e.g. `82.1`)
+**Every district with shares, using current members' districts** (the lines in effect until Jan 3, 2027)
 
 ```
-=IFERROR(INDEX(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip/"&LEFT(TEXT(A2,"00000"),5)&".csv"),1,2),"")
-```
-
-**Every district with shares, using current members' districts** (the lines
-in effect until Jan 3, 2027)
-
-```
-=IFERROR(TEXTJOIN(", ",TRUE,INDEX(IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/cd119/zip/"&LEFT(TEXT(A2,"00000"),5)&".csv"),0,3)),"")
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/cd119/zip_slim.csv"),4,FALSE),"")
 ```
 
 ## Files
@@ -67,6 +60,8 @@ Each plan folder `data/congress/<plan>/` holds:
 - `zip_cd_detail.csv`: one row per ZIP × district piece. Columns: `zip`,
   `state`, `cd`, `cd_geoid` (state FIPS + district), `pct_pop`, `pct_land`,
   `pop`, `zip_pop`.
+- `zip_slim.csv`: the lookup without a header or extra columns (`zip`, `cd`,
+  `all_cds`, `all_cds_pct`), which the spreadsheet formulas import.
 - `zip/<zip>.csv`: one tiny file per ZIP for spreadsheet formulas, a row per
   district with `cd`, `% of the ZIP's people`, and a `cd (pct%)` label.
 

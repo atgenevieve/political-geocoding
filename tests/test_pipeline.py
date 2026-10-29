@@ -111,6 +111,7 @@ def test_outputs(tmp_path):
     first = lookup.iloc[0].to_dict()
     assert first["zip"] == "10001" and first["cd"] == "AL-01" and first["pct"] == "75.0"
     assert first["all_cds_pct"] == "AL-01 (75.0%), AL-02 (25.0%)"
+    assert (tmp_path / "zip_slim.csv").read_text().splitlines()[0] == '10001,AL-01,"AL-01, AL-02","AL-01 (75.0%), AL-02 (25.0%)"'
     assert (tmp_path / "zip" / "10001.csv").read_text() == "AL-01,75.0,AL-01 (75.0%)\nAL-02,25.0,AL-02 (25.0%)\n"
     assert (tmp_path / "zip" / "10002.csv").read_text() == "AL-02,100.0,AL-02 (100.0%)\n"
 
