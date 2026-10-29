@@ -1,0 +1,65 @@
+# Rebuilds data/ from the Census Bureau files listed in config/plans.toml.
+#
+# Runs weekly so a republished block assignment file (Census regenerated the
+# 120th Congress file on 2026-10-06, for example) is picked up automatically,
+# whenever the pipeline or plan list changes, and on demand from the Actions
+# tab. If the rebuilt data differs, it is validated (seat counts, every
+# populated block assigned) and committed back to the branch that ran.
+name: build data
+
+on:
+  workflow_dispatch:
+    inputs:
+      refresh_base:
+        description: Rebuild the cached 2020 block population table
+        type: boolean
+        default: false
+  schedule:
+    - cron: "17 9 * * 1"
+  push:
+    paths:
+      - config/plans.toml
+      - geocoding/**
+      - .github/workflows/build-data.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-data-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt pytest
+      - run: python -m pytest -q
+
+      # The 2020 block population / ZCTA table never changes; cache it so
+      # weekly runs only download the (small) district plan files.
+      - uses: actions/cache@v4
+        with:
+          path: .cache/derived
+          key: block-base-v1-${{ hashFiles('geocoding/sources.py') }}
+
+      - name: Build
+        run: python -m geocoding build ${{ inputs.refresh_base && '--refresh-base' || '' }}
+
+      - name: Commit changed data
+        run: |
+          git add data
+          if git diff --cached --quiet; then
+            echo "Data unchanged."
+            exit 0
+          fi
+          git diff --cached --stat
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Rebuild district data from Census sources"
+          git push
