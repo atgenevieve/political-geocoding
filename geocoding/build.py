@@ -122,17 +122,11 @@ def write_congress_outputs(plan_id: str, pieces: pd.DataFrame, out_dir: Path) ->
         "zip": g["zcta"].first(),
         "cd": g["cd"].first(),
         "pct": g["weight"].first().round(1),
-        "n_cds": g["cd"].size(),
         "all_cds": g["cd"].agg(", ".join),
         "all_cds_pct": g["share"].agg(", ".join),
         "state": g["usps"].first(),
     })
     lookup.to_csv(out_dir / "zip_cd.csv", index=False)
-
-    # Headerless copy without the bulky columns, for a spreadsheet formula
-    # that imports the whole table once and looks up an entire column.
-    lookup[["zip", "cd", "all_cds", "all_cds_pct"]].to_csv(
-        out_dir / "zip_slim.csv", index=False, header=False)
 
     # One tiny CSV per ZIP, a row per district: label, % of the ZIP's people,
     # "label (pct%)". A spreadsheet reads a ZIP with IMPORTDATA alone.
@@ -146,7 +140,7 @@ def write_congress_outputs(plan_id: str, pieces: pd.DataFrame, out_dir: Path) ->
 
     return {
         "zips": int(lookup.shape[0]),
-        "zips_split": int((lookup["n_cds"] > 1).sum()),
+        "zips_split": int((g["cd"].size() > 1).sum()),
     }
 
 
@@ -199,8 +193,7 @@ def build(plan_ids: list[str] | None = None, refresh_base: bool = False) -> None
     default = manifest["defaults"].get("congress")
     src = DATA / "congress" / str(default)
     if default and (src / "zip_cd.csv").exists():
-        for name in ("zip_cd.csv", "zip_slim.csv"):
-            shutil.copyfile(src / name, DATA / "congress" / name)
+        shutil.copyfile(src / "zip_cd.csv", DATA / "congress" / "zip_cd.csv")
         if (DATA / "congress" / "zip").exists():
             shutil.rmtree(DATA / "congress" / "zip")
         shutil.copytree(src / "zip", DATA / "congress" / "zip")

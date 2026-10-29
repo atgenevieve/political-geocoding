@@ -29,25 +29,37 @@ when newer maps take effect. The first time, Sheets may ask you to
 **Just the district** (`TX-07`; for a ZIP split between districts, the one with most of its people)
 
 ```
-=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),2,FALSE),"")
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),2,FALSE),"")
 ```
 
 **Every district, with the share of the ZIP's people in each** (`TX-07 (82.1%), TX-09 (17.9%)`)
 
 ```
-=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),4,FALSE),"")
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),5,FALSE),"")
 ```
 
 **Every district, without percentages** (`TX-07, TX-09`)
 
 ```
-=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_slim.csv"),3,FALSE),"")
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),4,FALSE),"")
+```
+
+**The share of the ZIP's people in its main district** (`82.1`)
+
+```
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),3,FALSE),"")
+```
+
+**The state** (`TX`)
+
+```
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/zip_cd.csv"),6,FALSE),"")
 ```
 
 **Every district with shares, using current members' districts** (the lines in effect until Jan 3, 2027)
 
 ```
-=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/cd119/zip_slim.csv"),4,FALSE),"")
+=IFERROR(VLOOKUP(VALUE(LEFT(A2,5)),IMPORTDATA("https://raw.githubusercontent.com/atgenevieve/political-geocoding/main/data/congress/cd119/zip_cd.csv"),5,FALSE),"")
 ```
 
 ## Files
@@ -55,13 +67,11 @@ when newer maps take effect. The first time, Sheets may ask you to
 Each plan folder `data/congress/<plan>/` holds:
 
 - `zip_cd.csv`: one row per ZIP. Columns: `zip`, `cd` (district with the
-  largest share of the ZIP's population), `pct` (that share), `n_cds`,
-  `all_cds`, `all_cds_pct`, `state`.
+  largest share of the ZIP's population), `pct` (that share), `all_cds`,
+  `all_cds_pct`, `state`. The spreadsheet formulas import this file.
 - `zip_cd_detail.csv`: one row per ZIP × district piece. Columns: `zip`,
   `state`, `cd`, `cd_geoid` (state FIPS + district), `pct_pop`, `pct_land`,
   `pop`, `zip_pop`.
-- `zip_slim.csv`: the lookup without a header or extra columns (`zip`, `cd`,
-  `all_cds`, `all_cds_pct`), which the spreadsheet formulas import.
 - `zip/<zip>.csv`: one tiny file per ZIP for spreadsheet formulas, a row per
   district with `cd`, `% of the ZIP's people`, and a `cd (pct%)` label.
 
