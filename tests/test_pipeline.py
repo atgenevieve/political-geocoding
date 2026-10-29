@@ -1,4 +1,3 @@
-import json
 import zipfile
 
 import pandas as pd
@@ -112,9 +111,8 @@ def test_outputs(tmp_path):
     first = lookup.iloc[0].to_dict()
     assert first["zip"] == "10001" and first["cd"] == "AL-01" and first["pct"] == "75.0"
     assert first["all_cds_pct"] == "AL-01 75.0%, AL-02 25.0%"
-    shard = json.loads((tmp_path / "by_prefix" / "100.json").read_text())
-    assert shard["10001"] == [["AL-01", 75.0, 50.0], ["AL-02", 25.0, 50.0]]
-    assert shard["10002"] == [["AL-02", None, 100.0]]
+    assert (tmp_path / "zip" / "10001.csv").read_text() == "AL-01,75.0\nAL-02,25.0\n"
+    assert (tmp_path / "zip" / "10002.csv").read_text() == "AL-02,100.0\n"
 
 
 def test_validate_rejects_wrong_seat_count():
